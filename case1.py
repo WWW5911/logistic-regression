@@ -53,7 +53,7 @@ def logistic_regression(dataset):
         for cur in dataset:
             y = cur['y']
             tmp = np.array(  (1, minmax_scale(cur['x1'], min1, max1), minmax_scale(cur['x2'], min2, max2) ) )    # minmax_scale with feature 
-            y_hat = sigmoid(w ,tmp )                                                    # calcute y hat which means prediction of cur's label = 1
+            y_hat = sigmoid(w * tmp )                                                    # calcute y hat which means prediction of cur's label = 1
             loss = CrossEntropy(y_hat, y)                                                # calcute loss by cross entropy
             delta_w = delta_w + learning_rate * (y - y_hat ) * tmp                       # update delta_w
 
@@ -67,6 +67,7 @@ def logistic_regression(dataset):
         if ep == epoch-1:
             print("Epoch has been exceeded. End in epoch: " + str(ep+1))
     #w[0] = re_minmax_scale(w[0])
+    w[0] *= 200
     return w
     
 def print_graphic(w, dataset):
@@ -93,6 +94,9 @@ def print_graphic(w, dataset):
             plt.plot(i['x1'],i['x2'],"o", color='black', markersize=4)
 
     plt.show()                      
+
+
+
 
 #find min and max of dataset
 min1 = 1E9
