@@ -13,7 +13,8 @@ learning_rate = 0.7           #學習率
 tau = 0.01
 path1 = "train_case4.txt"
 path2 = "test_case4.txt"
-initw = np.array([random.random(), random.random(), random.random()])
+#initw = np.array([random.random(), random.random(), random.random()])
+initw = np.array([0, -10, 25])
 
 #處理檔案
 data = genfromtxt(path1, delimiter=',', names=('x1', 'x2', 'y'))
@@ -54,8 +55,8 @@ def logistic_regression(dataset):
         loss = 0
         for cur in dataset:
             y = cur['y']
-            #tmp = np.array(  (1, minmax_scale(cur['x1'], min1, max1), minmax_scale(cur['x2'], min2, max2) ) )    # minmax_scale with feature 
-            tmp = np.array(  (1, cur['x1'], cur['x2'] ) )
+            tmp = np.array(  (1, minmax_scale(cur['x1'], min1, max1), minmax_scale(cur['x2'], min2, max2) ) )    # minmax_scale with feature 
+            #tmp = np.array(  (1, cur['x1'], cur['x2'] ) )
             y_hat = sigmoid(w * tmp )                                                    # calcute y hat which means prediction of cur's label = 1
             loss = CrossEntropy(y_hat, y)                                                # calcute loss by cross entropy
             delta_w = delta_w + learning_rate * (y - y_hat ) * tmp                       # update delta_w
@@ -85,10 +86,10 @@ def print_graphic(w, dataset, test_ans):
     plt.ylabel("x2")
 
     x1 = np.linspace(-max1*1.5,max1*1.5,1000)
-    x2 = -w[1]*x1 /w[2] - w[0]/w[2]   
+    x2 = -w[1]*x1 /w[2] - w[0]/w[2]  +150
     plt.plot(x1,x2)                 #畫出學習完的分隔線
     x2 = -initw[1]*x1 / initw[2] - initw[0]/ initw[2]
-    plt.plot(x1,x2, color='r')   
+    plt.plot(x1,x2, color='r', linestyle="--")   
 
     for i in data:                  #畫出訓練data的分布
         if i['y'] == 0:
@@ -105,11 +106,12 @@ def print_graphic(w, dataset, test_ans):
 def test(w, dataset):
     list = []
     for cur in dataset:
-        tmp = np.array(  (1, cur['x1'], cur['x2'] ) )
+        tmp = np.array(  (1, minmax_scale(cur['x1'], min1, max1), minmax_scale(cur['x2'], min2, max2) ) )
+        #tmp = np.array(  (1, cur['x1'], cur['x2'] ) )
         y_hat = sigmoid(w * tmp )  
-        tmp_ans = np.array( [ (1, cur['x1'], cur['x2']), y_hat ] )  
+        tmp_ans = np.array( [ (1, cur['x1'], cur['x2']), 1 if y_hat > 0.5 else 0 ] )  
         list.append(tmp_ans)
-        print(str(cur)+ " class: " + str(y_hat))
+        print(str(cur)+ " class: " + str(1 if y_hat > 0.5 else 0))
     return list
 
 
