@@ -20,6 +20,25 @@ initw = np.array([0, -10, 25])
 data = genfromtxt(path1, delimiter=',', names=('x1', 'x2', 'y'))
 test_data = genfromtxt(path2, delimiter=',', names=('x1', 'x2'))
 
+def init():
+    #initw = np.array([random.random(), random.random(), random.random()])
+    initw = np.array([0, -10, 25])
+    #find min and max of dataset
+    min1 = 1E9
+    min2 = 1E9
+    max1 = 0
+    max2 = 0
+    for cur in data:
+        if cur['x1'] > max1:
+            max1 = cur['x1']
+        if cur['x2'] > max2:
+            max2 = cur['x2']
+        if cur['x1'] < min1:
+            min1 = cur['x1']
+        if cur['x2'] < min2:
+            min2 = cur['x2']
+    return initw, min1, min2, max1, max2
+
 def sigmoid(data):
     #return 1 / ( 1 + math.exp(np.sum(data)))
   if np.sum(data) >= 0:
@@ -77,8 +96,6 @@ def logistic_regression(dataset):
 def print_graphic(w, dataset, test_ans):
     plt.xlim(min1-(max1-min1)/2, max1+(max1-min1)/2)                #畫布大小
     plt.ylim(min2-(max2-min2)/2, max2+(max2-min2)/2)
-    #plt.xlim(-20,20)                #畫布大小
-    #plt.ylim(-20,20)
     plt.axhline(0.5, color= 'gray')   #橫軸
     plt.axvline(0.5, color= 'gray')   #直軸
 
@@ -86,17 +103,17 @@ def print_graphic(w, dataset, test_ans):
     plt.ylabel("x2")
 
     x1 = np.linspace(-max1*1.5,max1*1.5,1000)
-    x2 = -w[1]*x1 /w[2] - w[0]/w[2]  +(max1+min1)/2
-    plt.plot(x1,x2)                 #畫出學習完的分隔線
+    x2 = -w[1]*x1 /w[2] - w[0]/w[2] + (max1+min1)/2
+    plt.plot(x1,x2)                  #畫出學習完的分隔線
     x2 = -initw[1]*x1 / initw[2] - initw[0]/ initw[2]
     plt.plot(x1,x2, color='r', linestyle="--")   
 
-    for i in data:                  #畫出訓練data的分布
+    for i in data:                   #畫出訓練data的分布
         if i['y'] == 0:
             plt.plot(i['x1'],i['x2'],"x", color='r', markersize=4)
         else:
             plt.plot(i['x1'],i['x2'],"o", color='black', markersize=4)
-    for i in test_ans[0:]:          #畫出測試data的分布
+    for i in test_ans[0:]:           #畫出測試data的分布
         if i[1] == 0:
             plt.plot(i[0][1],i[0][2],"^", color='r')
         else: 
@@ -116,20 +133,9 @@ def test(w, dataset):
 
 
 
-#find min and max of dataset
-min1 = 1E9
-min2 = 1E9
-max1 = 0
-max2 = 0
-for cur in data:
-    if cur['x1'] > max1:
-        max1 = cur['x1']
-    if cur['x2'] > max2:
-        max2 = cur['x2']
-    if cur['x1'] < min1:
-        min1 = cur['x1']
-    if cur['x2'] < min2:
-        min2 = cur['x2']
+
+initw, min1, min2, max1, max2 = init()
+
 weight = logistic_regression(data)
 print("w0 = " + str(weight[0]))
 print("w1 = " + str(weight[1]))
