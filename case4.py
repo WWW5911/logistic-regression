@@ -11,11 +11,13 @@ random.seed ( 10 )
 epoch = 10000                    #最多跑的回合數
 learning_rate = 0.7           #學習率
 tau = 0.01
-path1 = "train_case1.txt"
+path1 = "train_case4.txt"
+path2 = "test_case4.txt"
 initw = np.array([random.random(), random.random(), random.random()])
 
 #處理檔案
 data = genfromtxt(path1, delimiter=',', names=('x1', 'x2', 'y'))
+test_data = genfromtxt(path2, delimiter=',', names=('x1', 'x2'))
 
 def sigmoid(data):
     #return 1 / ( 1 + math.exp(np.sum(data)))
@@ -52,7 +54,8 @@ def logistic_regression(dataset):
         loss = 0
         for cur in dataset:
             y = cur['y']
-            tmp = np.array(  (1, minmax_scale(cur['x1'], min1, max1), minmax_scale(cur['x2'], min2, max2) ) )    # minmax_scale with feature 
+            #tmp = np.array(  (1, minmax_scale(cur['x1'], min1, max1), minmax_scale(cur['x2'], min2, max2) ) )    # minmax_scale with feature 
+            tmp = np.array(  (1, cur['x1'], cur['x2'] ) )
             y_hat = sigmoid(w * tmp )                                                    # calcute y hat which means prediction of cur's label = 1
             loss = CrossEntropy(y_hat, y)                                                # calcute loss by cross entropy
             delta_w = delta_w + learning_rate * (y - y_hat ) * tmp                       # update delta_w
@@ -70,7 +73,7 @@ def logistic_regression(dataset):
     #w[0] *= 200
     return w
     
-def print_graphic(w, dataset):
+def print_graphic(w, dataset, test_ans):
     plt.xlim(min1-(max1-min1)/2, max1+(max1-min1)/2)                #畫布大小
     plt.ylim(min2-(max2-min2)/2, max2+(max2-min2)/2)
     #plt.xlim(-20,20)                #畫布大小
@@ -92,9 +95,22 @@ def print_graphic(w, dataset):
             plt.plot(i['x1'],i['x2'],"x", color='r', markersize=4)
         else:
             plt.plot(i['x1'],i['x2'],"o", color='black', markersize=4)
-
+    for i in test_ans[0:]:          #畫出測試data的分布
+        if i[1] == 0:
+            plt.plot(i[0][1],i[0][2],"^", color='r')
+        else: 
+            plt.plot(i[0][1],i[0][2],"^", color='black' )
     plt.show()                      
 
+def test(w, dataset):
+    list = []
+    for cur in dataset:
+        tmp = np.array(  (1, cur['x1'], cur['x2'] ) )
+        y_hat = sigmoid(w * tmp )  
+        tmp_ans = np.array( [ (1, cur['x1'], cur['x2']), y_hat ] )  
+        list.append(tmp_ans)
+        print(str(cur)+ " class: " + str(y_hat))
+    return list
 
 
 
@@ -117,4 +133,5 @@ print("w0 = " + str(weight[0]))
 print("w1 = " + str(weight[1]))
 print("w2 = " + str(weight[2]))
 
-print_graphic(weight, data)
+test_ans = test(weight, test_data)
+print_graphic(weight, data, test_ans)

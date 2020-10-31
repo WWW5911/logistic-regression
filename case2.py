@@ -11,7 +11,7 @@ random.seed ( 10 )
 epoch = 10000                    #最多跑的回合數
 learning_rate = 0.7           #學習率
 tau = 0.01
-path1 = "train_case1.txt"
+path1 = "train_case2.txt"
 initw = np.array([random.random(), random.random(), random.random()])
 
 #處理檔案
