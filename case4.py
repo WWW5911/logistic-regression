@@ -86,7 +86,7 @@ def print_graphic(w, dataset, test_ans):
     plt.ylabel("x2")
 
     x1 = np.linspace(-max1*1.5,max1*1.5,1000)
-    x2 = -w[1]*x1 /w[2] - w[0]/w[2]  +150
+    x2 = -w[1]*x1 /w[2] - w[0]/w[2]  +(max1+min1)/2
     plt.plot(x1,x2)                 #畫出學習完的分隔線
     x2 = -initw[1]*x1 / initw[2] - initw[0]/ initw[2]
     plt.plot(x1,x2, color='r', linestyle="--")   
@@ -111,7 +111,7 @@ def test(w, dataset):
         y_hat = sigmoid(w * tmp )  
         tmp_ans = np.array( [ (1, cur['x1'], cur['x2']), 1 if y_hat > 0.5 else 0 ] )  
         list.append(tmp_ans)
-        print(str(cur)+ " class: " + str(1 if y_hat > 0.5 else 0))
+        print(str(cur)+ " class: " + str(1 if y_hat > 0.5 else 0) + " with probility: " + str(y_hat))
     return list
 
 
