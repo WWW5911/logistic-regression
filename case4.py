@@ -5,38 +5,53 @@ import random
 import math
 from sklearn.preprocessing import minmax_scale 
 from dask.array.linalg import norm
+import pandas as pd
 
 random.seed ( 10 )
 
 epoch = 10000                    #最多跑的回合數
 learning_rate = 0.7           #學習率
 tau = 0.01
-path1 = "train_case4.txt"
-path2 = "test_case4.txt"
-#initw = np.array([random.random(), random.random(), random.random()])
-initw = np.array([0, -10, 25])
+#path1 = "train_case4.txt"
+#path2 = "test_case4.txt"
+initw = np.array([random.random(), random.random(), random.random()])
+#initw = np.array([0, -10, 25])
 
 #處理檔案
-data = genfromtxt(path1, delimiter=',', names=('x1', 'x2', 'y'))
-test_data = genfromtxt(path2, delimiter=',', names=('x1', 'x2'))
+#data = genfromtxt(path1, delimiter=',', names=(0, 1, 2))
+#test_data = genfromtxt(path2, delimiter=',', names=(0, 1))
+data = np.array( [[170,80,1],
+                [90,15,0],
+                [130,30,0],
+                [165,55,1],
+                [150,45,1],
+                [120,40,0],
+                [110,35,0],
+                [180,70,1],
+                [175,65,1],
+                [160,60,1]])
+test_data = np.array([[170,60],
+                    [85,15],
+                    [145,45]])
+
 
 def init():
     #initw = np.array([random.random(), random.random(), random.random()])
-    initw = np.array([0, -10, 25])
+    initw = np.array([0, -0.4, 1])
     #find min and max of dataset
     min1 = 1E9
     min2 = 1E9
     max1 = 0
     max2 = 0
     for cur in data:
-        if cur['x1'] > max1:
-            max1 = cur['x1']
-        if cur['x2'] > max2:
-            max2 = cur['x2']
-        if cur['x1'] < min1:
-            min1 = cur['x1']
-        if cur['x2'] < min2:
-            min2 = cur['x2']
+        if cur[0] > max1:
+            max1 = cur[0]
+        if cur[1] > max2:
+            max2 = cur[1]
+        if cur[0] < min1:
+            min1 = cur[0]
+        if cur[1] < min2:
+            min2 = cur[1]
     return initw, min1, min2, max1, max2
 
 def sigmoid(data):
@@ -54,13 +69,15 @@ def CrossEntropy(y_hat, y):
 
 def minmax_scale(w, min, max):
     return (w-min) / (max-min)
-def re_minmax_scale(w):
-    return w * (max1-min1) + min1
+def re_minmax_scale(w, min, max):
+    return w * (max-min) + min
 
 def to_unitVector(w):
     if w[1] < 1 and w[2] < 1:
         return w
-    sqrtw = math.sqrt(w[1]*w[1] + w[2]*w[2])
+    #sqrtw = math.sqrt(w[1]*w[1] + w[2]*w[2])
+    sqrtw = math.sqrt(w[1]*w[1] + w[2]*w[2] +w[0]*w[0])
+    w[0] = w[0] / sqrtw
     w[1] = w[1] / sqrtw
     w[2] = w[2] / sqrtw
     return w
@@ -73,9 +90,9 @@ def logistic_regression(dataset):
         delta_w = np.zeros(len(w))
         loss = 0
         for cur in dataset:
-            y = cur['y']
-            tmp = np.array(  (1, minmax_scale(cur['x1'], min1, max1), minmax_scale(cur['x2'], min2, max2) ) )    # minmax_scale with feature 
-            #tmp = np.array(  (1, cur['x1'], cur['x2'] ) )
+            y = cur[2]
+            tmp = np.array(  (1, minmax_scale(cur[0], min1, max1), minmax_scale(cur[1], min2, max2) ) )    # minmax_scale with feature 
+            #tmp = np.array(  (1, cur[0], cur[1] ) )
             y_hat = sigmoid(w * tmp )                                                    # calcute y hat which means prediction of cur's label = 1
             loss = CrossEntropy(y_hat, y)                                                # calcute loss by cross entropy
             delta_w = delta_w + learning_rate * (y - y_hat ) * tmp                       # update delta_w
@@ -84,6 +101,7 @@ def logistic_regression(dataset):
             if loss > tau:
                 flag = False
         w = w + delta_w
+        
         if flag :
             print("loss is low enough. End in epoch : " + str(ep+1))
             break
@@ -91,6 +109,7 @@ def logistic_regression(dataset):
             print("Epoch has been exceeded. End in epoch: " + str(ep+1))
     #w[0] = re_minmax_scale(w[0])
     #w[0] *= 200
+    
     return w
     
 def print_graphic(w, dataset, test_ans):
@@ -103,30 +122,38 @@ def print_graphic(w, dataset, test_ans):
     plt.ylabel("x2")
 
     x1 = np.linspace(-max1*1.5,max1*1.5,1000)
-    x2 = -w[1]*x1 /w[2] - w[0]/w[2] + (max1+min1)/2
-    plt.plot(x1,x2)                  #畫出學習完的分隔線
+    x2 = -w[1]*x1 /w[2] - w[0]/w[2] 
+    #畫出學習完的分隔線 由於train的時候是做過正規化 所以要化出正確的線要再反正規化
+    plt.plot(re_minmax_scale(x1, min1, max1), re_minmax_scale(x2, min2, max2), label='trained_w')    
+    #畫初始線              
     x2 = -initw[1]*x1 / initw[2] - initw[0]/ initw[2]
-    plt.plot(x1,x2, color='r', linestyle="--")   
+    plt.plot(x1,x2, color='r', linestyle="--", label='init_w')   
 
     for i in data:                   #畫出訓練data的分布
-        if i['y'] == 0:
-            plt.plot(i['x1'],i['x2'],"x", color='r', markersize=4)
+        if i[2] == 0:
+            plt.plot(i[0],i[1],"x", color='r', markersize=4 )
         else:
-            plt.plot(i['x1'],i['x2'],"o", color='black', markersize=4)
+            plt.plot(i[0],i[1],"o", color='black', markersize=4)
     for i in test_ans[0:]:           #畫出測試data的分布
         if i[1] == 0:
             plt.plot(i[0][1],i[0][2],"^", color='r')
         else: 
-            plt.plot(i[0][1],i[0][2],"^", color='black' )
+            plt.plot(i[0][1],i[0][2],"^", color='black')
+    #建造LABEL
+    plt.plot(-1000,-1000,"x", color='r', markersize=4 ,label='train_y=0')
+    plt.plot(-1000,-1000,"o", color='black', markersize=4,label='train_y=1')
+    plt.plot(-1000,-1000,"^", color='r',label='test_y=0')
+    plt.plot(-1000,-1000,"^", color='black' ,label='test_y=1')
+    plt.legend(loc='lower left')
     plt.show()                      
 
 def test(w, dataset):
     list = []
     for cur in dataset:
-        tmp = np.array(  (1, minmax_scale(cur['x1'], min1, max1), minmax_scale(cur['x2'], min2, max2) ) )
-        #tmp = np.array(  (1, cur['x1'], cur['x2'] ) )
+        tmp = np.array(  (1, minmax_scale(cur[0], min1, max1), minmax_scale(cur[1], min2, max2) ) )
+        #tmp = np.array(  (1, cur[0], cur[1] ) )
         y_hat = sigmoid(w * tmp )  
-        tmp_ans = np.array( [ (1, cur['x1'], cur['x2']), 1 if y_hat > 0.5 else 0 ] )  
+        tmp_ans = np.array( [ (1, cur[0], cur[1]), 1 if y_hat > 0.5 else 0 ] )  
         list.append(tmp_ans)
         print(str(cur)+ " class: " + str(1 if y_hat > 0.5 else 0) + " with probility: " + str(y_hat))
     return list

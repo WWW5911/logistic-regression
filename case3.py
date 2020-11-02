@@ -15,7 +15,11 @@ path1 = "train_case3.txt"
 initw = np.array([random.random(), random.random(), random.random()])
 
 #處理檔案
-data = genfromtxt(path1, delimiter=',', names=('x1', 'x2', 'y'))
+#data = genfromtxt(path1, delimiter=',', names=(0, 1, 2))
+data = np.array([[0,0,0],
+                [0,1,1],
+                [1,0,1],
+                [1,1,0]])
 
 def sigmoid(data):
     #return 1 / ( 1 + math.exp(np.sum(data)))
@@ -51,8 +55,8 @@ def logistic_regression(dataset):
         delta_w = np.zeros(len(w))
         loss = 0
         for cur in dataset:
-            y = cur['y']
-            tmp = np.array(  (1, minmax_scale(cur['x1'], min1, max1), minmax_scale(cur['x2'], min2, max2) ) )    # minmax_scale with feature 
+            y = cur[2]
+            tmp = np.array(  (1, minmax_scale(cur[0], min1, max1), minmax_scale(cur[1], min2, max2) ) )    # minmax_scale with feature 
             y_hat = sigmoid(w * tmp )                                                    # calcute y hat which means prediction of cur's label = 1
             loss = CrossEntropy(y_hat, y)                                                # calcute loss by cross entropy
             delta_w = delta_w + learning_rate * (y - y_hat ) * tmp                       # update delta_w
@@ -87,12 +91,18 @@ def print_graphic(w, dataset):
     x2 = -initw[1]*x1 / initw[2] - initw[0]/ initw[2]
     plt.plot(x1,x2, color='r')   
 
-    for i in data:                  #畫出訓練data的分布
-        if i['y'] == 0:
-            plt.plot(i['x1'],i['x2'],"x", color='r', markersize=4)
+    for i in data:                   #畫出訓練data的分布
+        if i[2] == 0:
+            plt.plot(i[0],i[1],"x", color='r', markersize=4 )
         else:
-            plt.plot(i['x1'],i['x2'],"o", color='black', markersize=4)
+            plt.plot(i[0],i[1],"o", color='black', markersize=4)
 
+    #建造LABEL
+    plt.plot(-1000,-1000,"x", color='r', markersize=4 ,label='train_y=0')
+    plt.plot(-1000,-1000,"o", color='black', markersize=4,label='train_y=1')
+    plt.plot(-1000,-1000,"^", color='r',label='test_y=0')
+    plt.plot(-1000,-1000,"^", color='black' ,label='test_y=1')
+    plt.legend(loc='lower left')
     plt.show()                      
 
 
@@ -104,14 +114,14 @@ min2 = 1E9
 max1 = 0
 max2 = 0
 for cur in data:
-    if cur['x1'] > max1:
-        max1 = cur['x1']
-    if cur['x2'] > max2:
-        max2 = cur['x2']
-    if cur['x1'] < min1:
-        min1 = cur['x1']
-    if cur['x2'] < min2:
-        min2 = cur['x2']
+    if cur[0] > max1:
+        max1 = cur[0]
+    if cur[1] > max2:
+        max2 = cur[1]
+    if cur[0] < min1:
+        min1 = cur[0]
+    if cur[1] < min2:
+        min2 = cur[1]
 weight = logistic_regression(data)
 print("w0 = " + str(weight[0]))
 print("w1 = " + str(weight[1]))
