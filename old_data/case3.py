@@ -59,8 +59,8 @@ def logistic_regression(dataset):
             tmp = np.array(  (1, minmax_scale(cur[0], min1, max1), minmax_scale(cur[1], min2, max2) ) )    # minmax_scale with feature 
             y_hat = sigmoid(w * tmp )                                                    # calcute y hat which means prediction of cur's label = 1
             loss = CrossEntropy(y_hat, y)                                                # calcute loss by cross entropy
-            delta_w = delta_w + learning_rate * (y - y_hat ) * tmp                       # update delta_w
-
+            delta_w = delta_w + loss *  learning_rate * (y - y_hat ) * tmp                       # update delta_w
+            
             # when all of loss in this epoch is lower than tau, break the for-loop
             if loss > tau:
                 flag = False
@@ -68,6 +68,7 @@ def logistic_regression(dataset):
         if flag :
             print("loss is low enough. End in epoch : " + str(ep+1))
             break
+
         if ep == epoch-1:
             print("Epoch has been exceeded. End in epoch: " + str(ep+1))
     #w[0] = re_minmax_scale(w[0])
