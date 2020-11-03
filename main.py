@@ -9,8 +9,8 @@ import pandas as pd
 
 random.seed ( 15 )
 
-epoch = 100                    #最多跑的回合數
-learning_rate = 0.7           #學習率
+epoch = 10000                    #最多跑的回合數
+learning_rate = 0.7              #學習率
 tau = 0.01
 path1 = "train_case4.txt"
 path2 = "test_case4.txt"
